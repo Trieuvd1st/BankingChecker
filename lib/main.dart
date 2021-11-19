@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:html/parser.dart';
 
@@ -36,6 +35,14 @@ class _MyHomePageState extends State<MyHomePage> {
   InAppWebViewController? iawControlller;
   final TextEditingController userController = TextEditingController();
   final TextEditingController passController = TextEditingController();
+  String textTransaction = "";
+  int getTransactionStep = 0;
+
+  void _setTextTransaction(String text) {
+    setState(() {
+      textTransaction = text;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,51 +61,80 @@ class _MyHomePageState extends State<MyHomePage> {
                 onWebViewCreated: (InAppWebViewController controller) {
                   iawControlller = controller;
                 },
+
+                onLoadStop: (InAppWebViewController controller, Uri? url) async {
+                  print("get step $getTransactionStep");
+                  if(getTransactionStep == 0) {
+                    await iawControlller?.evaluateJavascript(
+                        source:
+                        "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+                    getTransactionStep++;
+                  }
+                },
               ),
             ),
+            const SizedBox(height: 20),
+            Text(textTransaction),
             const SizedBox(
-              height: 200,
+              height: 100,
             ),
             TextField(controller: userController),
             const SizedBox(
-              height: 20,
-            ),
-            TextField(controller: passController,),
-            const SizedBox(
               height: 50,
+            ),
+            TextField(
+              controller: passController,
+              autofocus: false,
+            ),
+            const SizedBox(
+              height: 40,
             ),
             Row(
               children: [
                 ElevatedButton(
                     onPressed: () async {
-                      iawControlller?.evaluateJavascript(source: "javascript:\$('#signOnName').val('01627093838');");
-                      iawControlller?.evaluateJavascript(source: "javascript:\$('#password').val('Hoilg12!');");
-                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"form[name='login']\").submit();");
+                      FocusScope.of(context).unfocus();
+                      iawControlller?.evaluateJavascript(
+                          source:
+                              "javascript:\$('#signOnName').val('01627093838');");
+                      iawControlller?.evaluateJavascript(
+                          source:
+                              "javascript:\$('#password').val('Hoilg12!');");
+                      iawControlller?.evaluateJavascript(
+                          source:
+                              "javascript:\$(\"form[name='login']\").submit();");
                     },
                     child: const Text("Login")),
-
                 ElevatedButton(
                     onPressed: () async {
-                      iawControlller?.evaluateJavascript(source: "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+                      iawControlller?.evaluateJavascript(
+                          source:
+                              "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
                     },
                     child: const Text("chuyển tab tk")),
                 ElevatedButton(
                     onPressed: () async {
-                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"a[title='Xem giao dịch']\")[0].click();");
+                      iawControlller?.evaluateJavascript(
+                          source:
+                              "javascript:\$(\"#appreq_STMTSTEPTWO905900202101 a[title='Xem giao dịch']\")[0].click();");
                     },
                     child: const Text("lấy gd")),
-
                 ElevatedButton(
                     onPressed: () async {
-                      var htmlStr = await iawControlller?.evaluateJavascript(source: "window.document.getElementsByTagName('html')[0].outerHTML;");
-                      print("trieuvd content html: $htmlStr");
+                      var htmlStr = await iawControlller?.evaluateJavascript(
+                          source:
+                              "window.document.getElementsByTagName('html')[0].outerHTML;");
+                      //print("trieuvd content html: $htmlStr");
                       var document = parse(htmlStr);
-                      print("content html: ${document.getElementById("cv_main")?.innerHtml}");
-
+                      //print("content html: ${document.getElementsByClassName('colour1')[0].getElementsByTagName('td')[1].innerHtml}");
+                      _setTextTransaction(document
+                          .getElementsByClassName('colour1')[0]
+                          .getElementsByTagName('td')[1]
+                          .innerHtml);
                     },
                     child: const Text("show gd")),
               ],
-            )
+            ),
           ],
         ),
       ),
