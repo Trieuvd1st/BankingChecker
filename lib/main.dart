@@ -37,10 +37,18 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController passController = TextEditingController();
   String textTransaction = "";
   int getTransactionStep = 0;
+  bool hasFocusWv = false;
+  FocusNode? focusNoteWv;
 
   void _setTextTransaction(String text) {
     setState(() {
       textTransaction = text;
+    });
+  }
+
+  void _setFocus(bool hasFocus) {
+    setState(() {
+      hasFocusWv = hasFocus;
     });
   }
 
@@ -54,23 +62,26 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             Expanded(
-              child: InAppWebView(
-                initialUrlRequest: URLRequest(
-                    url: Uri.parse(
-                        "https://ib.techcombank.com.vn/servlet/BrowserServlet")),
-                onWebViewCreated: (InAppWebViewController controller) {
-                  iawControlller = controller;
-                },
+              child: Focus(
+                focusNode: focusNoteWv,
+                child: InAppWebView(
+                  initialUrlRequest: URLRequest(
+                      url: Uri.parse(
+                          "https://ib.techcombank.com.vn/servlet/BrowserServlet")),
+                  onWebViewCreated: (InAppWebViewController controller) {
+                    iawControlller = controller;
+                  },
 
-                onLoadStop: (InAppWebViewController controller, Uri? url) async {
-                  print("get step $getTransactionStep");
-                  if(getTransactionStep == 0) {
-                    await iawControlller?.evaluateJavascript(
-                        source:
-                        "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
-                    getTransactionStep++;
-                  }
-                },
+                  onLoadStop: (InAppWebViewController controller, Uri? url) async {
+                    print("get step $getTransactionStep");
+                    if(getTransactionStep == 0) {
+                      await iawControlller?.evaluateJavascript(
+                          source:
+                          "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+                      getTransactionStep++;
+                    }
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -93,7 +104,6 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 ElevatedButton(
                     onPressed: () async {
-                      FocusScope.of(context).unfocus();
                       iawControlller?.evaluateJavascript(
                           source:
                               "javascript:\$('#signOnName').val('01627093838');");
@@ -110,28 +120,30 @@ class _MyHomePageState extends State<MyHomePage> {
                       iawControlller?.evaluateJavascript(
                           source:
                               "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+                      _setFocus(true);
                     },
                     child: const Text("chuyển tab tk")),
                 ElevatedButton(
                     onPressed: () async {
-                      //await iawControlller?.evaluateJavascript(source: "javascript:\$(\"table[id='goButton']:eq(1) a[title='Xem giao dịch']\").click();");
-                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
-                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
-                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"a[title='Xem giao dịch']\")[0].click();");
+                      Focus.of(context).requestFocus(focusNoteWv);
+                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").focus();");
+                      // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
+                      // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
                     },
                     child: const Text("lấy gd")),
                 ElevatedButton(
                     onPressed: () async {
-                      var htmlStr = await iawControlller?.evaluateJavascript(
-                          source:
-                              "window.document.getElementsByTagName('html')[0].outerHTML;");
-                      //print("trieuvd content html: $htmlStr");
-                      var document = parse(htmlStr);
-                      //print("content html: ${document.getElementsByClassName('colour1')[0].getElementsByTagName('td')[1].innerHtml}");
-                      _setTextTransaction(document
-                          .getElementsByClassName('colour1')[0]
-                          .getElementsByTagName('td')[1]
-                          .innerHtml);
+                      iawControlller?.evaluateJavascript(source: "javascript:\$(\"a[title='Xem giao dịch']\")[0].click();");
+                      // var htmlStr = await iawControlller?.evaluateJavascript(
+                      //     source:
+                      //         "window.document.getElementsByTagName('html')[0].outerHTML;");
+                      // //print("trieuvd content html: $htmlStr");
+                      // var document = parse(htmlStr);
+                      // //print("content html: ${document.getElementsByClassName('colour1')[0].getElementsByTagName('td')[1].innerHtml}");
+                      // _setTextTransaction(document
+                      //     .getElementsByClassName('colour1')[0]
+                      //     .getElementsByTagName('td')[1]
+                      //     .innerHtml);
                     },
                     child: const Text("show gd")),
               ],
