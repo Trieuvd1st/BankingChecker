@@ -90,7 +90,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         Expanded(
           child:
-              Opacity(opacity: 0, child: gestureDetector ?? const SizedBox()),
+              Opacity(opacity: 1, child: gestureDetector ?? const SizedBox()),
         ),
         const SizedBox(height: 20),
         Text(textTransaction),
