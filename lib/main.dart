@@ -127,12 +127,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text("chuyển tab tk")),
             ElevatedButton(
                 onPressed: () async {
-                  // iawControlller?.evaluateJavascript(
-                  //     source:
-                  //         "javascript:\$(\"a[title='Xem giao dịch']\")[0].click();");
                   iawControlller?.evaluateJavascript(
                       source:
-                          "javascript:\$(\"input[name='fieldName:START.DATE']\").focus();");
+                          "javascript:\$(\"a[title='Xem giao dịch']\")[0].click();");
+                  // iawControlller?.evaluateJavascript(
+                  //     source:
+                  //         "javascript:\$(\"input[name='fieldName:START.DATE']\").focus();");
                   // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
                   // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
                 },
