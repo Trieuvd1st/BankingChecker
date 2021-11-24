@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:html/parser.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,7 +38,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController userController = TextEditingController();
   final TextEditingController passController = TextEditingController();
   String textTransaction = "";
-  int getTransactionStep = 0;
   GestureDetector? gestureDetector;
 
   void _setTextTransaction(String text) {
@@ -48,49 +49,43 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-
-    gestureDetector = GestureDetector(
-      onTap: () {
-        print("TRIEUVD: onTap webview");
-      },
-      child: Container(
-        child: InAppWebView(
-          initialUrlRequest: URLRequest(
-              url: Uri.parse(
-                  "https://ib.techcombank.com.vn/servlet/BrowserServlet")),
-          onWebViewCreated: (InAppWebViewController controller) {
-            iawControlller = controller;
-          },
-          onLoadStop: (InAppWebViewController controller, Uri? url) async {
-            print("get step $getTransactionStep");
-            if (getTransactionStep == 0) {
-              await iawControlller?.evaluateJavascript(
-                  source:
-                      "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
-              getTransactionStep++;
-            }
-          },
-        ),
-      ),
-    );
   }
-
-  // void onTapDown(BuildContext context, TapDownDetails details) {
-  //   print('${details.globalPosition}');
-  //   final RenderBox box = context.findRenderObject();
-  //   final Offset localOffset = box.globalToLocal(details.globalPosition);
-  //   setState(() {
-  //     posx = localOffset.dx;
-  //     posy = localOffset.dy;
-  //   });
-  // }
 
   Widget _dalkjfsdf(BuildContext context) {
     return Column(
       children: [
         Expanded(
           child:
-              Opacity(opacity: 1, child: gestureDetector ?? const SizedBox()),
+              Opacity(opacity: 1, child: InAppWebView(
+                initialUrlRequest: URLRequest(
+                    url: Uri.parse(
+                        "https://ib.techcombank.com.vn/servlet/BrowserServlet")),
+                onWebViewCreated: (InAppWebViewController controller) {
+                  iawControlller = controller;
+                },
+                initialOptions: InAppWebViewGroupOptions(
+                  crossPlatform: InAppWebViewOptions(
+                      useOnDownloadStart: true
+                  ),
+                ),
+                onDownloadStart: (controller, uri) async {
+                  print("onDownloadStart $uri");
+                  final taskId = await FlutterDownloader.enqueue(
+                      url: uri.path,
+                      savedDir: (await getExternalStorageDirectory())!.path,
+                  showNotification: true, // show download progress in status bar (for Android)
+                  openFileFromNotification: true, // click on notification to open downloaded file (for Android)
+                  );
+                },
+                onLoadStop: (InAppWebViewController controller, Uri? url) async {
+                  // if (getTransactionStep == 0) {
+                  //   await iawControlller?.evaluateJavascript(
+                  //       source:
+                  //       "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+                  //   getTransactionStep++;
+                  //}
+                },
+              ),),
         ),
         const SizedBox(height: 20),
         Text(textTransaction),
@@ -133,8 +128,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   // iawControlller?.evaluateJavascript(
                   //     source:
                   //         "javascript:\$(\"input[name='fieldName:START.DATE']\").focus();");
-                  // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
-                  // iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
+                  iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
+                  iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
                 },
                 child: const Text("lấy gd")),
             ElevatedButton(
@@ -164,9 +159,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: GestureDetector(
-          child: _dalkjfsdf(context),
-        ),
+        child: _dalkjfsdf(context),
       ),
     );
   }
