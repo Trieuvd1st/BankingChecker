@@ -37,11 +37,12 @@ class _MyHomePageState extends State<MyHomePage> {
   InAppWebViewController? iawControlller;
   final TextEditingController userController = TextEditingController();
   final TextEditingController passController = TextEditingController();
+  final TextEditingController capChaController = TextEditingController();
   String textTransaction = "";
   bool loginIsVisible = true;
   double wvOpacity = 0;
   int stepLoading = 0;
-  bool isEnableLogin = false;
+  bool isEnableLogin = true;
 
   void _setTextTransaction(String text) {
     setState(() {
@@ -77,85 +78,113 @@ class _MyHomePageState extends State<MyHomePage> {
     return Stack(
       children: [
         Opacity(
-          opacity: wvOpacity,
+          opacity: 1,
           child: InAppWebView(
             initialUrlRequest: URLRequest(
                 url: Uri.parse(
-                    "https://ib.techcombank.com.vn/servlet/BrowserServlet")),
+                    "https://vcbdigibank.vietcombank.com.vn")),
             onWebViewCreated: (InAppWebViewController controller) {
               iawControlller = controller;
             },
             initialOptions: InAppWebViewGroupOptions(
               crossPlatform: InAppWebViewOptions(
-                javaScriptEnabled: true,
-                  useOnDownloadStart: true
-              ),
+                  javaScriptEnabled: true, useOnDownloadStart: true),
             ),
-            onDownloadStart: (controller, uri) async {
-              print("onDownloadStart $uri");
-              final taskId = await FlutterDownloader.enqueue(
-                url: "",
-                savedDir: (await getExternalStorageDirectory())!.path,
-                showNotification: true,
-                // show download progress in status bar (for Android)
-                openFileFromNotification:
-                    true, // click on notification to open downloaded file (for Android)
-              );
-            },
+            // onDownloadStart: (controller, uri) async {
+            //   print("onDownloadStart $uri");
+            //   final taskId = await FlutterDownloader.enqueue(
+            //     url: "",
+            //     savedDir: (await getExternalStorageDirectory())!.path,
+            //     showNotification: true,
+            //     openFileFromNotification: true,
+            //   );
+            // },
             onLoadStop: (InAppWebViewController controller, Uri? url) async {
               stepLoading++;
-              print("loading onstop $stepLoading");
-              if (stepLoading == 1) {
-                _setEnableLogin(true);
+              print("loading onstop $url");
+              if(stepLoading == 2) {
+                iawControlller?.evaluateJavascript(source: "javascript:\$('#username').focus();");
+                iawControlller?.evaluateJavascript(source: "javascript:\$('#app_password_login').focus();");
+                iawControlller?.evaluateJavascript(source: "javascript:\$(\"input[name='captcha']\").focus();");
               }
-              if (stepLoading == 2) {
-                _setLoginVisible(false);
-                _setWvVisible(1);
-              }
-              if (stepLoading == 3) {
-                await iawControlller?.evaluateJavascript(
-                    source:
-                        "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
-              }
-              if (stepLoading == 4) {
-                print("TRIEUVD: da vao man giao dich");
-                await iawControlller?.evaluateJavascript(
-                    source:
-                    "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
-                await iawControlller?.evaluateJavascript(
-                    source:
-                    "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
-              }
+              // if (stepLoading == 1) {
+              //   _setEnableLogin(true);
+              // }
+              // if (stepLoading == 2) {
+              //   _setLoginVisible(false);
+              //   _setWvVisible(1);
+              // }
+              // if (stepLoading == 3) {
+              //   await iawControlller?.evaluateJavascript(
+              //       source:
+              //           "javascript:document.getElementsByName('AI.QCK.ACCOUNT')[0].click()");
+              // }
+              // if (stepLoading == 4) {
+              //   print("TRIEUVD: da vao man giao dich");
+              //   await iawControlller?.evaluateJavascript(
+              //       source:
+              //       "javascript:\$(\"input[name='fieldName:START.DATE']\").val('01/09/2021');");
+              //   await iawControlller?.evaluateJavascript(
+              //       source:
+              //       "javascript:\$(\"input[name='fieldName:END.DATE']\").val('01/11/2021');");
+              // }
             },
           ),
         ),
         Visibility(
-            visible: loginIsVisible,
+            visible: true,
             child: Column(
               children: [
-              const SizedBox(height: 50,),
+                const SizedBox(
+                  height: 50,
+                ),
                 TextField(controller: userController),
                 const SizedBox(
                   height: 50,
                 ),
                 TextField(controller: userController),
-                const SizedBox(height: 40),
+            const SizedBox(height: 10,),
+            // Image.network(
+            //            "https://vcbdigibank.vietcombank.com.vn/w1/get-captcha/ebefb08b-4eda-859d-4806-6d96b673619f"),
+                Row(
+                  children: [
+                    Expanded(child: TextField(controller: capChaController),),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Image.network(
+                        "https://vcbdigibank.vietcombank.com.vn/w1/get-captcha/ebefb08b-4eda-859d-4806-6d96b673619f"),
+                  ],
+                ),
+                const SizedBox(height: 20,),
                 ElevatedButton(
-                    onPressed: !isEnableLogin? null : () async {
-                      iawControlller?.evaluateJavascript(
-                          source:
-                              "javascript:\$('#signOnName').val('01627093838');");
-                      iawControlller?.evaluateJavascript(
-                          source:
-                              "javascript:\$('#password').val('Hoilg12!');");
-                      iawControlller?.evaluateJavascript(
-                          source:
-                              "javascript:\$(\"form[name='login']\").submit();");
-                    },
+                    onPressed: !isEnableLogin
+                        ? null
+                        : () async {
+                            iawControlller?.evaluateJavascript(
+                                source:
+                                    "javascript:\$('#username').val('0327093838');");
+                            iawControlller?.evaluateJavascript(
+                                source:
+                                    "javascript:\$('#app_password_login').val('Hoilg123!');");
+                            iawControlller?.evaluateJavascript(
+                                source:
+                                    "javascript:\$(\"input[name='captcha']\").val('${capChaController.text}');");
+                            // await iawControlller?.evaluateJavascript(
+                            //     source: "javascript:\$('#btnLogin').click();");
+                          },
                     child: const Text("Login")),
+
+                ElevatedButton(
+                    onPressed: !isEnableLogin
+                        ? null
+                        : () async {
+                      await iawControlller?.evaluateJavascript(
+                          source: "javascript:\$('#btnLogin').click();");
+                    },
+                    child: const Text("fsdf")),
               ],
             ))
-
       ],
     );
   }
